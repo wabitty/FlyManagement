@@ -1,7 +1,5 @@
 import org.mindrot.jbcrypt.BCrypt;
-
 import javax.imageio.ImageIO;
-import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
@@ -72,7 +70,6 @@ public class DBConnection {
                 }
             }
 
-            // Create ticket
             try (PreparedStatement pstmt = conn.prepareStatement(
                     "INSERT INTO tickets (user_id, flight_id, seat_number) VALUES (?, ?, ?)")) {
                 pstmt.setInt(1, userId);
@@ -81,7 +78,6 @@ public class DBConnection {
                 pstmt.executeUpdate();
             }
 
-            // Update available seats
             try (PreparedStatement pstmt = conn.prepareStatement(
                     "UPDATE flights SET available_seats = available_seats - 1 WHERE flight_id = ?")) {
                 pstmt.setInt(1, flightId);
@@ -133,7 +129,6 @@ public class DBConnection {
             conn = getConnection();
             conn.setAutoCommit(false);
 
-            // Get old flight ID
             int oldFlightId;
             try (PreparedStatement pstmt = conn.prepareStatement(
                     "SELECT flight_id FROM tickets WHERE ticket_id = ?")) {
@@ -143,7 +138,6 @@ public class DBConnection {
                 oldFlightId = rs.getInt("flight_id");
             }
 
-            // Update ticket
             try (PreparedStatement pstmt = conn.prepareStatement(
                     "UPDATE tickets SET flight_id = ?, seat_number = ? WHERE ticket_id = ?")) {
                 pstmt.setInt(1, newFlightId);
@@ -152,7 +146,6 @@ public class DBConnection {
                 pstmt.executeUpdate();
             }
 
-            // Update seat counts
             try (PreparedStatement pstmt = conn.prepareStatement(
                     "UPDATE flights SET available_seats = available_seats + 1 WHERE flight_id = ?")) {
                 pstmt.setInt(1, oldFlightId);
@@ -188,5 +181,35 @@ public class DBConnection {
             }
         }
         return flights;
+    }
+
+    public static boolean insertFullFlight(
+            String departure,
+            String destination,
+            Timestamp departureTime,
+            Timestamp arrivalTime,
+            double price,
+            int seats,
+            boolean isExclusive
+    ) throws SQLException {
+        String query = "INSERT INTO flights (" +
+                "departure_city, destination_city, " +
+                "departure_time, arrival_time, " +
+                "price, available_seats, is_exclusive" +
+                ") VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+
+            pstmt.setString(1, departure);
+            pstmt.setString(2, destination);
+            pstmt.setTimestamp(3, departureTime);
+            pstmt.setTimestamp(4, arrivalTime);
+            pstmt.setDouble(5, price);
+            pstmt.setInt(6, seats);
+            pstmt.setBoolean(7, isExclusive);
+
+            return pstmt.executeUpdate() > 0;
+        }
     }
 }

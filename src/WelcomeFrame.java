@@ -21,6 +21,7 @@ public class WelcomeFrame extends JFrame {
     private JLabel welcomeLabel;
     private JButton manageBookingsBtn;
     private JLabel titleLabel;
+    private JButton requestFlightBtn;
 
     private final User currentUser;
 
@@ -37,6 +38,13 @@ public class WelcomeFrame extends JFrame {
         loadFilterData();
         loadFlights(new HashMap<>());
         addEventListeners();
+        addRequestFlightButton();
+    }
+
+    private void addRequestFlightButton() {
+        requestFlightBtn.addActionListener(e -> {
+            new FlightRequestDialog((JFrame) SwingUtilities.getWindowAncestor(this)).setVisible(true);
+        });
     }
 
     private void configureDateRenderer() {
@@ -225,7 +233,6 @@ public class WelcomeFrame extends JFrame {
             if (seat != null) {
                 seat = seat.trim().toUpperCase();
 
-                // Seat validation
                 if (seat.isEmpty()) {
                     JOptionPane.showMessageDialog(this, "Please enter a seat number");
                     return;
